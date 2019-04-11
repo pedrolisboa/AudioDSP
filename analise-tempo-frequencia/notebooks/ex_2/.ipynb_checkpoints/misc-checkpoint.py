@@ -26,7 +26,7 @@ def plot_spec(Sxx, f, t,audio_name,ax):
 def processSpec(Sxx, win, wlen, thres):
     C = sum(win)/wlen;
     power = np.absolute(Sxx)/wlen/C
-    power = power / tpsw(power)#, **tpsw_args)
+    power = power / tpsw(power)
     power = 20*np.log10(power + 1e-6)
     power[power < thres] = 0
     
