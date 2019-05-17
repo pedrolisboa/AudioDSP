@@ -5,13 +5,20 @@ import matplotlib.pyplot as plt
 from scipy.signal import decimate, hanning, convolve, spectrogram
 import numpy as np
 
+def discrete_derivative(x, fs):
+    y = np.zeros_like(x);
+    for i in range(1,len(x)-1):
+            y[i] = (x[i] - x[i-1])*fs
+    return y
+
+
 def read_audio(filepath):
     return wav.read(filepath)
 
 def plot_spec(Sxx, f, t,audio_name,ax):
     h = ax.matshow(Sxx, 
                interpolation="nearest",
-               extent=[t.min(), t.max(), f.min(), f.max()],
+               extent=[f.min(), f.max(), t.min(), t.max()],
                aspect="auto",
                origin = 'lower',
                cmap="jet")
@@ -59,3 +66,73 @@ def tpsw(x, npts=None, n=None, p=None, a=None):
     x = np.where(indl, mx, x)
     mx = np.apply_along_axis(apply_on_spectre, arr=x, axis=0)
     return mx
+
+    
+    
+class Track:
+    def __init__(self, initial_frame, first_freq, first_amplitude):
+        self.initial_frame = initial_frame
+        self.frequency = [first_freq]
+        self.amplitude = [first_amplitude]
+        self.final_frame = -1
+        
+    def getFinalFrame(self) :
+        return self.final_frame
+    
+    def getInitialFrame(self) :
+        return self.initial_frame
+    
+    def setFinalFrame(self,value) :
+        self.final_frame = value
+                
+    def getFrequency(self) :
+        return self.frequency
+    
+    def matchFrequency(self, peak_freq, diff):
+        if abs((self.frequency[len(self.frequency) - 1]) - peak_freq) < diff:
+            return True
+        return False
+    
+    def append_frame(self,freq, ampl, i_frame):
+        last_frame = len(self.frequency) + self.initial_frame - 1
+        if last_frame < i_frame:
+            self.frequency = self._zero_pad(self.frequency, i_frame - last_frame)
+            self.amplitude = self._zero_pad(self.amplitude, i_frame - last_frame)
+        np.append(self.frequency, freq)
+        np.append(self.amplitude, ampl)
+        
+    def _setFinalFrame(self):
+        self.final_frame = len(self.frequency) + self.initial_frame
+    
+    def closeTrack(self):
+        self._setFinalFrame()
+        
+    def _zero_pad(self, array, n_frames):
+        return np.concatenate([array,
+                          np.zeros(n_frames)])
+    
+def evaluate_closest_track(frequency,listOfTracks,freq_dist_thresh,frame,freq_list) :
+    winner = -1
+    dif = 28000
+    for track in range(0,len(listOfTracks)-1):
+        Track_analyzed = listOfTracks[track]
+        if ((Track_analyzed.getFinalFrame() < 0) and (Track_analyzed.getInitialFrame() < frame) and (len(Track_analyzed.getFrequency()) + Track_analyzed.getInitialFrame() - 1 != frame)):
+            n_dif = abs(freq_list[frequency] - (listOfTracks[track].getFrequency())[frame-1-listOfTracks[track].getInitialFrame()])         
+            dif = min(n_dif,dif)
+            if (dif == n_dif) and (dif/(listOfTracks[track].getFrequency())[frame-1-listOfTracks[track].getInitialFrame()] <= freq_dist_thresh):
+                winner = track
+    return (winner,dif)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
