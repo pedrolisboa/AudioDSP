@@ -18,7 +18,7 @@ def read_audio(filepath):
 def plot_spec(Sxx, f, t,audio_name,ax):
     h = ax.matshow(Sxx, 
                interpolation="nearest",
-               extent=[t.min(), t.max(), f.min(), f.max()],
+               extent=[f.min(), f.max(), t.min(), t.max()],
                aspect="auto",
                origin = 'lower',
                cmap="jet")
@@ -88,6 +88,31 @@ class Track:
     def getFrequency(self) :
         return self.frequency
     
+<<<<<<< HEAD
+=======
+    def matchFrequency(self, peak_freq, diff):
+        if abs((self.frequency[len(self.frequency) - 1]) - peak_freq) < diff:
+            return True
+        return False
+    
+    def append_frame(self,freq, ampl, i_frame):
+        last_frame = len(self.frequency) + self.initial_frame - 1
+        if last_frame < i_frame:
+            self.frequency = self._zero_pad(self.frequency, i_frame - last_frame)
+            self.amplitude = self._zero_pad(self.amplitude, i_frame - last_frame)
+        np.append(self.frequency, freq)
+        np.append(self.amplitude, ampl)
+        
+    def _setFinalFrame(self):
+        self.final_frame = len(self.frequency) + self.initial_frame
+    
+    def closeTrack(self):
+        self._setFinalFrame()
+        
+    def _zero_pad(self, array, n_frames):
+        return np.concatenate([array,
+                          np.zeros(n_frames)])
+>>>>>>> 27be2e851d3882320d8dddd36e871fbc2756363c
     
 def evaluate_closest_track(frequency,listOfTracks,freq_dist_thresh,frame,freq_list) :
     winner = -1
